@@ -1,3 +1,7 @@
 # machine-specific state created at runtime
 repo-path.txt
 launcher-error.log
+dsh-tray.log
+
+# generated wrappers (recreated by install-shortcut.ps1)
+*.vbs
