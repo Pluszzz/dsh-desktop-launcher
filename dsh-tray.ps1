@@ -119,6 +119,24 @@ function Toggle-ConsoleWindow {
 
 function Open-Web { Start-Process $url }
 
+# ── auto-start support (tray menu toggle, never set automatically) ──────────
+
+$vbsPath   = Join-Path $here 'dsh-tray.vbs'
+$startupDir = [Environment]::GetFolderPath('Startup')
+$startupLnk = Join-Path $startupDir 'DSH Web Tray.lnk'
+
+function Ensure-TrayVbs {
+  if (Test-Path $vbsPath) { return }
+  $content = @'
+' dsh-tray.vbs - launch dsh-tray.ps1 hidden (no console window)
+Set fso = CreateObject("Scripting.FileSystemObject")
+scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
+Set shell = CreateObject("WScript.Shell")
+shell.Run "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & scriptDir & "\dsh-tray.ps1""", 0, False
+'@
+  Set-Content -Path $vbsPath -Value $content -Encoding ASCII
+}
+
 # ── tray UI ──────────────────────────────────────────────────────────────────
 
 $notify = New-Object System.Windows.Forms.NotifyIcon
@@ -151,12 +169,32 @@ $miExit.add_Click({
   [System.Windows.Forms.Application]::Exit()
 })
 
+$miAutostart = New-Object System.Windows.Forms.ToolStripMenuItem('开机自启（登录时自动启动 DSH 服务）')
+$miAutostart.CheckOnClick = $true
+$miAutostart.add_Click({
+  Ensure-TrayVbs
+  $ws = New-Object -ComObject WScript.Shell
+  if ($miAutostart.Checked) {
+    $lnk = $ws.CreateShortcut($startupLnk)
+    $lnk.TargetPath = "$env:windir\System32\wscript.exe"
+    $lnk.Arguments = "`"$vbsPath`""
+    $lnk.IconLocation = $icoPath
+    $lnk.Description = 'DSH Web 系统托盘管理器'
+    $lnk.Save()
+    Write-Log 'auto-start enabled'
+  } else {
+    if (Test-Path $startupLnk) { Remove-Item $startupLnk -Force; Write-Log 'auto-start disabled' }
+  }
+})
+$menu.add_Opening({ $miAutostart.Checked = (Test-Path $startupLnk) })
+
 $menu.Items.Add($miOpen) | Out-Null
 $menu.Items.Add($miShow) | Out-Null
 $menu.Items.Add($miHide) | Out-Null
 $menu.Items.Add($miRestart) | Out-Null
 $menu.Items.Add($miStop) | Out-Null
 $menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null
+$menu.Items.Add($miAutostart) | Out-Null
 $menu.Items.Add($miExit) | Out-Null
 $notify.ContextMenuStrip = $menu
 
@@ -171,3 +209,4 @@ $server = Start-Server
 Start-Process $url
 
 [System.Windows.Forms.Application]::Run()
+

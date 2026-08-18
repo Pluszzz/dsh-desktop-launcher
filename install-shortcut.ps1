@@ -1,4 +1,4 @@
-# install-shortcut.ps1
+﻿# install-shortcut.ps1
 # Installer for the DSH Web desktop shortcut (rc.7 mode).
 # Requires the dsh CLI installed globally: npm install -g @deepseek-ai/dsh
 # Usage:
@@ -145,4 +145,29 @@ if (Test-Path $ico) { $lnk.IconLocation = $ico }
 $lnk.Description = "Launch DeepSeek Harness Web GUI (http://127.0.0.1:$Port)"
 $lnk.Save()
 Write-Step "shortcut ready: $lnkPath -> http://127.0.0.1:$Port"
+
+# --- 5. tray manager: write the hidden launcher and a desktop shortcut ---
+$vbsPath = Join-Path $here 'dsh-tray.vbs'
+if (-not (Test-Path $vbsPath)) {
+  $vbs = @'
+' dsh-tray.vbs - launch dsh-tray.ps1 hidden (no console window)
+Set fso = CreateObject("Scripting.FileSystemObject")
+scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
+Set shell = CreateObject("WScript.Shell")
+shell.Run "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & scriptDir & "\dsh-tray.ps1""", 0, False
+'@
+  Set-Content -Path $vbsPath -Value $vbs -Encoding ASCII
+  Write-Step "tray launcher written: $vbsPath"
+}
+$trayLnkPath = Join-Path $desktop 'DSH Web 托盘.lnk'
+$ws = New-Object -ComObject WScript.Shell
+$trayLnk = $ws.CreateShortcut($trayLnkPath)
+$trayLnk.TargetPath = "$env:windir\System32\wscript.exe"
+$trayLnk.Arguments = "`"$vbsPath`""
+$trayLnk.WorkingDirectory = $here
+if (Test-Path $ico) { $trayLnk.IconLocation = $ico }
+$trayLnk.Description = 'DSH Web 系统托盘管理器（右键菜单管理服务；开机自启在托盘菜单里勾选）'
+$trayLnk.Save()
+Write-Step "tray shortcut ready: $trayLnkPath (auto-start is a tray menu checkbox, not set by this installer)"
+
 

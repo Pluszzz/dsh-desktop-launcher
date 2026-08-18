@@ -11,6 +11,8 @@ DeepSeek Harness Web GUI 的 Windows 桌面启动器套件（适配 dsh 0.1.0-rc
 | `launch-dsh-web.ps1` | 便携启动器：通过全局安装的 `dsh` CLI（rc.7）幂等启动服务 + 打开浏览器，不依赖源码仓库 |
 | `install-shortcut.cmd` | 双击即可安装/重建桌面快捷方式（推荐入口） |
 | `install-shortcut.ps1` | 安装脚本本体，支持参数：`-Repo`（可选，仅用于重建图标）`-Port` `-ShortcutName` |
+| `dsh-tray.ps1` | 系统托盘管理器：右键菜单可打开 GUI / 显示隐藏服务窗口 / 重启 / 停止服务，并带「开机自启」勾选项 |
+| `dsh-tray.vbs` | 托盘隐藏启动包装（wscript 静默拉起，无控制台窗口）；安装脚本自动生成 |
 | `make-icon.mjs` | 图标生成器（零依赖 Node）：SVG 路径 → 多尺寸 `.ico` |
 | `dsh-web.ico` 等 | 预生成图标资源（6 尺寸多分辨率 ICO） |
 | `whale-path.txt` | 从 favicon.svg 提取的鲸鱼路径数据（图标重建用） |
@@ -22,6 +24,13 @@ DeepSeek Harness Web GUI 的 Windows 桌面启动器套件（适配 dsh 0.1.0-rc
 3. 之后双击桌面 **DeepSeek Harness** 快捷方式即可打开
 
 启动器查找 dsh 命令的顺序：安装时内置的路径 → PATH 中的 `dsh.cmd`/`dsh.exe` → `%APPDATA%\npm\dsh.cmd`。
+
+## 系统托盘
+
+安装脚本会生成桌面 **DSH Web 托盘** 快捷方式（wscript 静默启动，无窗口）。托盘右键菜单：
+
+- 打开 Web GUI / 显示服务窗口 / 隐藏服务窗口 / 重启服务 / 停止服务
+- **开机自启**：勾选项，勾上后在 Windows 登录时自动启动托盘并拉起 DSH 服务；取消勾选即移除自启。**默认不勾选，安装脚本不会自动设置自启。**
 
 ## 前提条件
 
