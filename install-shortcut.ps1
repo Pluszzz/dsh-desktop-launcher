@@ -1,5 +1,5 @@
-﻿# install-shortcut.ps1
-# Installer for the DSH Web desktop shortcut (rc.6 mode).
+# install-shortcut.ps1
+# Installer for the DSH Web desktop shortcut (rc.7 mode).
 # Requires the dsh CLI installed globally: npm install -g @deepseek-ai/dsh
 # Usage:
 #   powershell -ExecutionPolicy Bypass -File install-shortcut.ps1
@@ -35,9 +35,9 @@ Write-Step "dsh CLI: $dsh"
 
 # --- 2. write the launcher script from a template ---
 $template = @'
-# DSH Web launcher (portable, rc.6)
+# DSH Web launcher (portable, rc.7)
 # Starts the DeepSeek Harness Web GUI through the globally installed `dsh` CLI
-# (0.1.0-rc.6) if it is not already running, then opens the browser.
+# (0.1.0-rc.7) if it is not already running, then opens the browser.
 # Self-contained: no source checkout required.
 #   __DSH__ is baked in by install-shortcut.ps1; PATH/APPDATA fallbacks cover
 #   other machines.

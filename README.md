@@ -1,6 +1,6 @@
 # DSH Desktop Launcher
 
-DeepSeek Harness Web GUI 的 Windows 桌面启动器套件（适配 dsh 0.1.0-rc.6 全局安装）。
+DeepSeek Harness Web GUI 的 Windows 桌面启动器套件（适配 dsh 0.1.0-rc.7 全局安装）。
 
 双击桌面快捷方式：服务未启动则自动拉起（最小化窗口运行，可恢复查看日志、关闭即停服），然后打开浏览器进入 GUI；服务已在运行则直接秒开页面。
 
@@ -8,7 +8,7 @@ DeepSeek Harness Web GUI 的 Windows 桌面启动器套件（适配 dsh 0.1.0-rc
 
 | 文件 | 作用 |
 |---|---|
-| `launch-dsh-web.ps1` | 便携启动器：通过全局安装的 `dsh` CLI（rc.6）幂等启动服务 + 打开浏览器，不依赖源码仓库 |
+| `launch-dsh-web.ps1` | 便携启动器：通过全局安装的 `dsh` CLI（rc.7）幂等启动服务 + 打开浏览器，不依赖源码仓库 |
 | `install-shortcut.cmd` | 双击即可安装/重建桌面快捷方式（推荐入口） |
 | `install-shortcut.ps1` | 安装脚本本体，支持参数：`-Repo`（可选，仅用于重建图标）`-Port` `-ShortcutName` |
 | `make-icon.mjs` | 图标生成器（零依赖 Node）：SVG 路径 → 多尺寸 `.ico` |
@@ -17,7 +17,7 @@ DeepSeek Harness Web GUI 的 Windows 桌面启动器套件（适配 dsh 0.1.0-rc
 
 ## 使用
 
-1. 全局安装 dsh（rc.6）：`npm install -g @deepseek-ai/dsh`
+1. 全局安装 dsh（rc.7）：`npm install -g @deepseek-ai/dsh`
 2. 双击 `install-shortcut.cmd` → 自动检测 dsh CLI 并生成桌面快捷方式
 3. 之后双击桌面 **DeepSeek Harness** 快捷方式即可打开
 
@@ -27,7 +27,7 @@ DeepSeek Harness Web GUI 的 Windows 桌面启动器套件（适配 dsh 0.1.0-rc
 
 - Windows + PowerShell 5.1（`.ps1` 为 UTF-8 with BOM，中文脚本必须）
 - Node.js ≥ 22.19
-- 全局安装 `@deepseek-ai/dsh`（rc.6）
+- 全局安装 `@deepseek-ai/dsh`（rc.7）
 - 默认端口 3080 空闲（安装时可用 `-Port` 调整）
 
 ## 图标重新生成
