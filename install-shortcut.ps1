@@ -139,7 +139,7 @@ $lnkPath = Join-Path $desktop "$ShortcutName.lnk"
 $ws = New-Object -ComObject WScript.Shell
 $lnk = $ws.CreateShortcut($lnkPath)
 $lnk.TargetPath = "$env:windir\System32\WindowsPowerShell\v1.0\powershell.exe"
-$lnk.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$launcher`""
+$lnk.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$launcher`" -AppMode"
 $lnk.WorkingDirectory = $here
 if (Test-Path $ico) { $lnk.IconLocation = $ico }
 $lnk.Description = "Launch DeepSeek Harness Web GUI (http://127.0.0.1:$Port)"
@@ -169,5 +169,6 @@ if (Test-Path $ico) { $trayLnk.IconLocation = $ico }
 $trayLnk.Description = 'DSH Web 系统托盘管理器（右键菜单管理服务；开机自启在托盘菜单里勾选）'
 $trayLnk.Save()
 Write-Step "tray shortcut ready: $trayLnkPath (auto-start is a tray menu checkbox, not set by this installer)"
+
 
 
