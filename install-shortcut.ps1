@@ -134,17 +134,18 @@ if (-not (Test-Path $ico)) {
 }
 
 # --- 4. create/refresh the desktop shortcut ---
+# Uses a direct msedge --app shortcut so the taskbar shows the whale icon (not PowerShell).
 $desktop = [Environment]::GetFolderPath('Desktop')
 $lnkPath = Join-Path $desktop "$ShortcutName.lnk"
 $ws = New-Object -ComObject WScript.Shell
 $lnk = $ws.CreateShortcut($lnkPath)
-$lnk.TargetPath = "$env:windir\System32\WindowsPowerShell\v1.0\powershell.exe"
-$lnk.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$launcher`" -AppMode"
+$lnk.TargetPath = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+$lnk.Arguments = "--app=http://127.0.0.1:$Port"
 $lnk.WorkingDirectory = $here
 if (Test-Path $ico) { $lnk.IconLocation = $ico }
-$lnk.Description = "Launch DeepSeek Harness Web GUI (http://127.0.0.1:$Port)"
+$lnk.Description = "DeepSeek Harness Web GUI (http://127.0.0.1:$Port)"
 $lnk.Save()
-Write-Step "shortcut ready: $lnkPath -> http://127.0.0.1:$Port"
+Write-Step "shortcut ready: $lnkPath -> Edge app-mode (whale icon)"
 
 # --- 5. tray manager: write the hidden launcher and a desktop shortcut ---
 $vbsPath = Join-Path $here 'dsh-tray.vbs'
