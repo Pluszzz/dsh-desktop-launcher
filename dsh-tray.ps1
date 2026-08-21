@@ -117,7 +117,14 @@ function Toggle-ConsoleWindow {
   if (-not $wasVisible) { [DshNative]::ShowWindow($h, 9) | Out-Null } # was hidden -> restore
 }
 
-function Open-Web { Start-Process msedge.exe -ArgumentList "--app=http://127.0.0.1:$port" }
+function Open-Web {
+  $pwa = [Environment]::GetFolderPath('Desktop') + '\DeepSeek Harness (1).lnk'
+  if (Test-Path $pwa) {
+    Start-Process $pwa
+  } else {
+    Start-Process msedge.exe -ArgumentList "--app=http://127.0.0.1:$port"
+  }
+}
 
 # ── auto-start support (tray menu toggle, never set automatically) ──────────
 
@@ -206,7 +213,8 @@ $notify.add_MouseClick({
 # Boot: make sure the server is up and open the GUI, then stay resident.
 Write-Log 'tray started'
 $server = Start-Server
-Start-Process msedge.exe -ArgumentList "--app=http://127.0.0.1:$port"
+$pwa = [Environment]::GetFolderPath('Desktop') + '\DeepSeek Harness (1).lnk'
+if (Test-Path $pwa) { Start-Process $pwa } else { Start-Process msedge.exe -ArgumentList "--app=http://127.0.0.1:$port" }
 
 [System.Windows.Forms.Application]::Run()
 
