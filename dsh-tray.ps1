@@ -117,9 +117,22 @@ function Toggle-ConsoleWindow {
   if (-not $wasVisible) { [DshNative]::ShowWindow($h, 9) | Out-Null } # was hidden -> restore
 }
 
+function Find-PwaShortcut {
+  # Search desktop for a shortcut whose target args contain --app-id (PWA installed from Edge)
+  $desktop = [Environment]::GetFolderPath('Desktop')
+  Get-ChildItem $desktop -Filter '*.lnk' -ErrorAction SilentlyContinue | ForEach-Object {
+    $wsh = New-Object -ComObject WScript.Shell
+    $sc = $wsh.CreateShortcut($_.FullName)
+    if ($sc.Arguments -match '--app-id|--app-url.*127\.0\.0\.1') {
+      return $_.FullName
+    }
+  }
+  return $null
+}
+
 function Open-Web {
-  $pwa = [Environment]::GetFolderPath('Desktop') + '\DeepSeek Harness (1).lnk'
-  if (Test-Path $pwa) {
+  $pwa = Find-PwaShortcut
+  if ($pwa) {
     Start-Process $pwa
   } else {
     Start-Process msedge.exe -ArgumentList "--app=http://127.0.0.1:$port"
@@ -213,8 +226,8 @@ $notify.add_MouseClick({
 # Boot: make sure the server is up and open the GUI, then stay resident.
 Write-Log 'tray started'
 $server = Start-Server
-$pwa = [Environment]::GetFolderPath('Desktop') + '\DeepSeek Harness (1).lnk'
-if (Test-Path $pwa) { Start-Process $pwa } else { Start-Process msedge.exe -ArgumentList "--app=http://127.0.0.1:$port" }
+$pwa = Find-PwaShortcut
+if ($pwa) { Start-Process $pwa } else { Start-Process msedge.exe -ArgumentList "--app=http://127.0.0.1:$port" }
 
 [System.Windows.Forms.Application]::Run()
 
