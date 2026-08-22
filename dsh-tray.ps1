@@ -23,7 +23,6 @@ $icoPath = Join-Path $here 'dsh-web.ico'
 $port    = 3080
 $url     = "http://127.0.0.1:$port"
 $log     = Join-Path $here 'dsh-tray.log'
-
 function Write-Log { param([string]$msg) try { "$(Get-Date -Format 'HH:mm:ss') $msg" | Add-Content $log } catch {} }
 
 # ── server management ────────────────────────────────────────────────────────
@@ -118,14 +117,11 @@ function Toggle-ConsoleWindow {
 }
 
 function Find-PwaShortcut {
-  # Search desktop for a shortcut whose target args contain --app-id (PWA installed from Edge)
-  $desktop = [Environment]::GetFolderPath('Desktop')
-  Get-ChildItem $desktop -Filter '*.lnk' -ErrorAction SilentlyContinue | ForEach-Object {
-    $wsh = New-Object -ComObject WScript.Shell
-    $sc = $wsh.CreateShortcut($_.FullName)
-    if ($sc.Arguments -match '--app-id|--app-url.*127\.0\.0\.1') {
-      return $_.FullName
-    }
+  # Search the launcher directory for a PWA shortcut matching the DeepSeek app ID.
+  $wsh = New-Object -ComObject WScript.Shell
+  foreach ($lnk in Get-ChildItem $here -Filter '*.lnk' -ErrorAction SilentlyContinue) {
+    try { $sc = $wsh.CreateShortcut($lnk.FullName) } catch { continue }
+    if ($sc.Arguments -match '--app-id=hgiemfgfjhalibdoboikeiepnnjapnpc') { return $lnk.FullName }
   }
   return $null
 }
@@ -157,6 +153,18 @@ shell.Run "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Fi
   Set-Content -Path $vbsPath -Value $content -Encoding ASCII
 }
 
+# Guard: scan for an existing tray process. If one is already running (different PID),
+# this instance just opens the PWA and exits immediately.
+$myPid = $PID
+$otherTray = Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
+  Where-Object { $_.ProcessId -ne $myPid -and $_.CommandLine -match 'dsh-tray\.ps1' }
+if ($otherTray) {
+  $pwa = Find-PwaShortcut
+  if ($pwa) { Start-Process $pwa } else { Start-Process "http://127.0.0.1:$port" }
+  Write-Log "tray already running (pid=$($otherTray[0].ProcessId)), opened PWA and exited"
+  exit 0
+}
+
 # ── tray UI ──────────────────────────────────────────────────────────────────
 
 $notify = New-Object System.Windows.Forms.NotifyIcon
@@ -166,22 +174,22 @@ $notify.Visible = $true
 
 $menu = New-Object System.Windows.Forms.ContextMenuStrip
 
-$miOpen  = New-Object System.Windows.Forms.ToolStripMenuItem('打开 Web GUI')
+$miOpen  = New-Object System.Windows.Forms.ToolStripMenuItem('Open Web GUI')
 $miOpen.add_Click({ Open-Web })
 
-$miShow  = New-Object System.Windows.Forms.ToolStripMenuItem('显示服务窗口')
+$miShow  = New-Object System.Windows.Forms.ToolStripMenuItem('Show Server Window')
 $miShow.add_Click({ Show-ConsoleWindow })
 
-$miHide  = New-Object System.Windows.Forms.ToolStripMenuItem('隐藏服务窗口')
+$miHide  = New-Object System.Windows.Forms.ToolStripMenuItem('Hide Server Window')
 $miHide.add_Click({ Hide-ConsoleWindow })
 
-$miRestart = New-Object System.Windows.Forms.ToolStripMenuItem('重启服务')
+$miRestart = New-Object System.Windows.Forms.ToolStripMenuItem('Restart Server')
 $miRestart.add_Click({ Restart-Server })
 
-$miStop  = New-Object System.Windows.Forms.ToolStripMenuItem('停止服务')
+$miStop  = New-Object System.Windows.Forms.ToolStripMenuItem('Stop Server')
 $miStop.add_Click({ Stop-Server })
 
-$miExit  = New-Object System.Windows.Forms.ToolStripMenuItem('退出（停止服务）')
+$miExit  = New-Object System.Windows.Forms.ToolStripMenuItem('Exit (stop server)')
 $miExit.add_Click({
   Stop-Server
   $notify.Visible = $false
@@ -189,7 +197,7 @@ $miExit.add_Click({
   [System.Windows.Forms.Application]::Exit()
 })
 
-$miAutostart = New-Object System.Windows.Forms.ToolStripMenuItem('开机自启（登录时自动启动 DSH 服务）')
+$miAutostart = New-Object System.Windows.Forms.ToolStripMenuItem('Auto-start at login (starts DSH on Windows login)')
 $miAutostart.CheckOnClick = $true
 $miAutostart.add_Click({
   Ensure-TrayVbs
@@ -199,7 +207,7 @@ $miAutostart.add_Click({
     $lnk.TargetPath = "$env:windir\System32\wscript.exe"
     $lnk.Arguments = "`"$vbsPath`""
     $lnk.IconLocation = $icoPath
-    $lnk.Description = 'DSH Web 系统托盘管理器'
+    $lnk.Description = 'DSH Web Tray Manager'
     $lnk.Save()
     Write-Log 'auto-start enabled'
   } else {
